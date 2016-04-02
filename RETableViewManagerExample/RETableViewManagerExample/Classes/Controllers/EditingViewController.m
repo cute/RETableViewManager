@@ -6,9 +6,10 @@
 //  Copyright (c) 2013 Roman Efimov. All rights reserved.
 //
 
+#import "RETableViewCell.h"
 #import "EditingViewController.h"
 
-@interface EditingViewController ()
+@interface EditingViewController ()<RETableViewCellDelegate,RETableViewManagerDelegate>
 
 @property (strong, readwrite, nonatomic) RETableViewManager *manager;
 
@@ -31,8 +32,7 @@
     
     // Create manager
     //
-    self.manager = [[RETableViewManager alloc] initWithTableView:self.tableView];
-    
+    self.manager = [[RETableViewManager alloc] initWithTableView:self.tableView delegate:self];
     // Add sections and items
     //
     
@@ -126,6 +126,62 @@
     };
     item.editingStyle = UITableViewCellEditingStyleInsert;
     [section addItem:item];
+}
+
+-(NSArray *) createRightButtons: (int) number
+{
+    NSMutableArray * result = [NSMutableArray array];
+    NSString* titles[2] = {@"Delete", @"More"};
+    UIColor * colors[2] = {[UIColor redColor], [UIColor lightGrayColor]};
+    for (int i = 0; i < number; ++i)
+    {
+        MGSwipeButton * button = [MGSwipeButton buttonWithTitle:titles[i] backgroundColor:colors[i] callback:^BOOL(RETableViewCell * sender){
+            NSLog(@"Convenience callback received (right).");
+            BOOL autoHide = i != 0;
+            return autoHide; //Don't autohide in delete button to improve delete expansion animation
+        }];
+        [result addObject:button];
+    }
+    return result;
+}
+
+- (void)tableView:(UITableView *)tableView willLoadCell:(RETableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    cell.textLabel.font = [UIFont systemFontOfSize:16];
+    cell.delegate = self;
+    cell.allowsMultipleSwipe = NO;
+    cell.rightSwipeSettings.transition = MGSwipeTransitionBorder;
+    cell.rightExpansion.fillOnTrigger = YES;
+}
+
+-(NSArray*) swipeTableCell:(RETableViewCell*) cell swipeButtonsForDirection:(MGSwipeDirection)direction
+             swipeSettings:(MGSwipeSettings*) swipeSettings expansionSettings:(MGSwipeExpansionSettings*) expansionSettings;
+{
+    if (direction == MGSwipeDirectionRightToLeft) {
+        expansionSettings.fillOnTrigger = NO;
+        return [self createRightButtons:2];
+    }
+    return nil;
+}
+
+-(BOOL) swipeTableCell:(RETableViewCell*) cell tappedButtonAtIndex:(NSInteger) index direction:(MGSwipeDirection)direction fromExpansion:(BOOL) fromExpansion
+{
+    NSLog(@"Delegate: button tapped, %@ position, index %d, from Expansion: %@",
+          direction == MGSwipeDirectionLeftToRight ? @"left" : @"right", (int)index, fromExpansion ? @"YES" : @"NO");
+    
+    if (direction == MGSwipeDirectionRightToLeft && index == 0) {
+        //delete button
+        NSIndexPath * path = [self.tableView indexPathForCell:cell];
+        [self.tableView deleteRowsAtIndexPaths:@[path] withRowAnimation:UITableViewRowAnimationLeft];
+        return NO; //Don't autohide to improve delete expansion animation
+    }
+    
+    return YES;
+}
+
+-(void) tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath
+{
+    NSLog(@"Tapped accessory button");
 }
 
 #pragma mark -
