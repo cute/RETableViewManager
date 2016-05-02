@@ -51,23 +51,28 @@
 {
     [super cellDidLoad];
     self.selectionStyle = UITableViewCellSelectionStyleNone;
-    
+
     self.switchView = [[UISwitch alloc] init];
     self.switchView.translatesAutoresizingMaskIntoConstraints = NO;
     [self.switchView addTarget:self action:@selector(switchValueDidChange:) forControlEvents:UIControlEventValueChanged];
-    [self.contentView addSubview:self.switchView];
 
-    CGFloat margin = (self.section.style.contentViewMargin <= 0) ? 15.0 : 10.0;
-    NSDictionary *metrics = @{@"margin": @(margin)};
-    [self.contentView addConstraint:[NSLayoutConstraint constraintWithItem:self.switchView
-                                                                 attribute:NSLayoutAttributeCenterY
-                                                                 relatedBy:NSLayoutRelationEqual
-                                                                    toItem:self.contentView
-                                                                 attribute:NSLayoutAttributeCenterY
-                                                                multiplier:1.0
-                                                                  constant:0]];
-    UISwitch *switchView = self.switchView;
-    [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[switchView]-margin-|" options:0 metrics:metrics views:NSDictionaryOfVariableBindings(switchView)]];
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        self.accessoryView = self.switchView;
+    } else {
+        [self.contentView addSubview:self.switchView];
+
+        CGFloat margin = (self.section.style.contentViewMargin <= 0) ? 15.0 : 10.0;
+        NSDictionary *metrics = @{@"margin": @(margin)};
+        [self.contentView addConstraint:[NSLayoutConstraint constraintWithItem:self.switchView
+                                                                     attribute:NSLayoutAttributeCenterY
+                                                                     relatedBy:NSLayoutRelationEqual
+                                                                        toItem:self.contentView
+                                                                     attribute:NSLayoutAttributeCenterY
+                                                                    multiplier:1.0
+                                                                      constant:0]];
+        UISwitch *switchView = self.switchView;
+        [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[switchView]-margin-|" options:0 metrics:metrics views:NSDictionaryOfVariableBindings(switchView)]];
+    }
 }
 
 - (void)cellWillAppear
@@ -107,7 +112,7 @@
     _enabled = enabled;
 
     self.userInteractionEnabled = _enabled;
-    
+
     self.textLabel.enabled = _enabled;
     self.switchView.enabled = _enabled;
 }
@@ -116,7 +121,7 @@
 {
     if ([object isKindOfClass:[REBoolItem class]] && [keyPath isEqualToString:@"enabled"]) {
         BOOL newValue = [[change objectForKey: NSKeyValueChangeNewKey] boolValue];
-        
+
         self.enabled = newValue;
     }
 }
