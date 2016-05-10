@@ -51,16 +51,15 @@
 {
     [super cellDidLoad];
     self.selectionStyle = UITableViewCellSelectionStyleNone;
-
     self.switchView = [[UISwitch alloc] init];
-    self.switchView.translatesAutoresizingMaskIntoConstraints = NO;
+
     [self.switchView addTarget:self action:@selector(switchValueDidChange:) forControlEvents:UIControlEventValueChanged];
 
     if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
         self.accessoryView = self.switchView;
     } else {
         [self.contentView addSubview:self.switchView];
-
+        self.switchView.translatesAutoresizingMaskIntoConstraints = NO;
         CGFloat margin = (self.section.style.contentViewMargin <= 0) ? 15.0 : 10.0;
         NSDictionary *metrics = @{@"margin": @(margin)};
         [self.contentView addConstraint:[NSLayoutConstraint constraintWithItem:self.switchView
@@ -80,7 +79,6 @@
     self.textLabel.backgroundColor = [UIColor clearColor];
     self.textLabel.text = self.item.title;
     self.switchView.on = self.item.value;
-
     self.enabled = self.item.enabled;
 }
 
